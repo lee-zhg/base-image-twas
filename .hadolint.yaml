@@ -1,0 +1,8 @@
+ignored:
+  - DL3000
+  - SC1010
+  - DL3045
+
+trustedRegistries:
+  - docker.io
+  - my-company.com:5000
