@@ -1,13 +1,17 @@
 
-# Create your custom Base Java Container Image from Open Liberty
+# Create your custom Base Java Container Image from Traditional WebSphere Container
 
-In this sample repo, you will create your custom base Java container image from `Open Liberty` container image `openliberty/open-liberty:kernel-slim-java8-openj9-ubi` in a OpenShift cluster running in IBM Cloud environment. 
+In this sample repo, you will create your custom base Java container image from traditional `WebSphere` container image `ibmcom/websphere-traditional:latest-ubi` in a OpenShift cluster running in IBM Cloud environment. 
 
-This custom base Java container image provides a uniformed starting point for deploying Java applications running on [Open Liberty](https://openliberty.io/) in your organization. 
+This custom base Java container image provides a uniformed starting point for deploying Java applications running in traditional `WebSphere` container in your organization. 
 
 You are going to create your base image via a tekton pipeline deployed in OpenShift cluster. The pipeline helps you create the base image through a series of tasks.
+
 - setup
+- dockerfile-lint
 - build
+- deploy-4-health-check
+- health-check
 - tag-release
 - img-release
 - img-scan
@@ -22,6 +26,7 @@ You can add, remove and modify the tasks in the sample pipeline based on your re
 ## Pre-requisites
 
 This repo was based on the [Cloud-native toolkit](https://cloudnativetoolkit.dev). 
+
 - `Cloud-native toolkit` must be deployed in your OpenShift cluster. 
 - `Cloud-native toolkit CLI` must be installed in your terminal/command window environment
 
@@ -57,7 +62,6 @@ The following tools are included in the shell installer:
 
     ```
     curl -sL shell.cloudnativetoolkit.dev | bash - 
-    
     source ~/.bashrc || source ~/.zshrc
     ```
 
@@ -87,14 +91,13 @@ The following tools are included in the shell installer:
 1. Setup environment variable.
 
     ```
-    export GIT_URL=https://github.com/lee-zhg/base-image-liberty
+    export GIT_URL=https://github.com/lee-zhg/base-image-twas
     ```
 
 1. Clone the repo locally.
 
     ```
     git clone $GIT_URL
-
     cd base-image-liberty
     ```
 
@@ -129,54 +132,58 @@ The steps in this section creates Tekton tasks, pipeline and etc in your namespa
 1. Create the new Tekton pipeline for creating your custom base container image.
 
     ```
-    oc pipeline -n base-image-github https://github.com/lee-zhg/base-image-liberty --tekton --pipeline ibm-java-maven
+    oc pipeline -n base-image-github $GIT_URL --tekton --pipeline ibm-java-maven
     ```
     - base-image-github - is the namespace in your OpenShift cluster.
     - https://github.com/lee-zhg/base-image-liberty - is the github repo url.
     - tekton - you are creating a tekton pipeline.
     - pipeline ibm-java-maven - is the pipeline template used to create your new pipeline.
 
-1. When prompted, enter your `git username`.
+1. If prompted, enter your `git username`.
 
-1. When prompted, enter your `git password` or `personal access token`. `Git personal access token` is preferred for security reason.
+1. If prompted, enter your `git password` or `personal access token`. `Git personal access token` is preferred for security reason.
 
-1. When prompted, select if you `Enable the pipeline to scan the image for vulnerabilities?`
+1. If prompted, select if you `Enable the pipeline to scan the image for vulnerabilities?`
 
-1. When prompted, select if you `Enable the pipeline to lint the Dockerfile for best practices?`
+1. If prompted, select if you `Enable the pipeline to lint the Dockerfile for best practices?`
 
 1. The `cloud native toolkit` takes your inputs, and create Tekton pipeline and associated resources in your namespace which is `base-image-github` by default.
 
     ```
-    kb-base-image-liberty % oc pipeline -n base-image-github https://github.com/lee-zhg/base-image-liberty --tekton --pipeline ibm-java-maven
+    base-image-liberty % oc pipeline -n base-image-github https://github.com/lee-zhg/base-image-liberty --tekton --pipeline ibm-java-maven
 
     Creating pipeline on openshift cluster in base-image-github namespace
     Retrieving git parameters
-    Project git repo: https://github.com/lee-zhg/base-image-liberty.git
-    ? Provide the git username: lee-zhg
-    ? Provide the git password or personal access token: [hidden]
+    Git credentials have already been stored for user: lee-zhg
+    Project git repo: https://github.com/lee-zhg/base-image-twas.git
     Branch: master
     Retrieving available template pipelines from tools
     ? scan-image: Enable the pipeline to scan the image for vulnerabilities? Yes
     ? lint-dockerfile: Enable the pipeline to lint the Dockerfile for best practices? Yes
     Copying tasks from tools
-    Copied Pipeline from tools/ibm-java-maven to base-image-github/base-image-liberty
-    Creating TriggerTemplate for pipeline: base-image-liberty
-    Creating TriggerBinding for pipeline: base-image-liberty
+    Copied Pipeline from tools/ibm-java-maven to base-image-github/base-image-twas
+    Creating TriggerTemplate for pipeline: base-image-twas
+    Creating TriggerBinding for pipeline: base-image-twas
     Creating/updating TriggerEventListener for pipeline: tekton
-    Creating new event listener
     Waiting for event listener rollout: base-image-github/el-tekton
     Creating/updating Route for pipeline: tekton
-    Creating PipelineRun for pipeline: base-image-liberty
-    Creating Github webhook for repo: https://github.com/lee-zhg/base-image-liberty.git
+    Creating PipelineRun for pipeline: base-image-twas
+    Creating Github webhook for repo: https://github.com/lee-zhg/base-image-twas.git
 
-    Pipeline run started: base-image-liberty-1794761aa46
+    Pipeline run started: base-image-twas-1794c6fdceb
 
     Next steps:
     Tekton cli:
-        View PipelineRun info - tkn pr describe base-image-liberty-1794761aa46
-        View PipelineRun logs - tkn pr logs -f base-image-liberty-1794761aa46
+        View PipelineRun info - tkn pr describe base-image-twas-1794c6fdceb
+        View PipelineRun logs - tkn pr logs -f base-image-twas-1794c6fdceb
     OpenShift console:
-        View PipelineRun - https://console-openshift-console.leez-roks-aiops-6ccd7f378ae819553d37d5f2ee142bd6-0000.us-south.containers.appdomain.cloud/k8s/ns/base-image-github/tekton.dev~v1beta1~PipelineRun/base-image-liberty-1794761aa46
+        View PipelineRun - https://console-openshift-console.leez-roks-aiops-6ccd7f378ae819553d37d5f2ee142bd6-0000.us-south.containers.appdomain.cloud/k8s/ns/base-image-github/tekton.dev~v1beta1~PipelineRun/base-image-twas-1794c6fdceb
+    ```
+
+1. Cancel the pipelinerun started by the previous command as the pipeline will be configured.
+
+    ```
+    tkn pipelinerun cancel base-image-twas-1794c6fdceb -n base-image-github
     ```
 
 ### Step 6. Configure your pipeline
@@ -192,7 +199,7 @@ The Tekton tasks, pipeline and etc in your namespace are the clone of the cloud 
 1. Configure your Tekton pipeline.
 
     ```
-    oc apply -f config/base-image-liberty-v2-6-10.yaml
+    oc apply -f config/base-image-twas-v2-6-10.yaml
     ```
 
 
@@ -203,22 +210,22 @@ Now, the tekton pipeline and associated resources are ready to help create your 
 1. Create your custom Base Java Container Image from Open Liberty by starting your pipeline.
 
     ```
-    tkn pipeline start base-image-liberty -n base-image-github -p git-url=$GIT_URL
+    tkn pipeline start base-image-twas -n base-image-github -p git-url=$GIT_URL
 
-    PipelineRun started: base-image-liberty-run-5fwqn
+    PipelineRun started: base-image-twas-run-5snv5
     In order to track the PipelineRun progress run:
-    tkn pipelinerun logs base-image-liberty-run-5fwqn -f -n base-image-github
+    tkn pipelinerun logs base-image-twas-run-5snv5 -f -n base-image-github
     ```
 
 1. View the PipelineRun logs.
 
     ```
-    tkn pipelinerun logs base-image-liberty-run-5fwqn -f -n base-image-github
+    tkn pipelinerun logs base-image-twas-run-5snv5 -f -n base-image-github
     ```
 
     >Note: the above command should complete with exit code 0.
 
-    >Note: replace `base-image-liberty-run-5fwqn` with your PipelineRun ID.
+    >Note: replace `base-image-twas-run-5snv5` with your PipelineRun ID.
 
 
 ### Step 8. Locate your custom Base Java Container Image

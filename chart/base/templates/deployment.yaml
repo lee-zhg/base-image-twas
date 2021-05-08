@@ -23,6 +23,7 @@ metadata:
     {{- end}}
 spec:
   replicas: {{ .Values.replicaCount }}
+  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "starter-kit.name" . }}
@@ -54,6 +55,8 @@ spec:
             httpGet:
               path: /
               port: http
+              initialDelaySeconds: 600
+              periodSeconds: 30
           env:
             - name: INGRESS_HOST
               value: ""
