@@ -23,7 +23,6 @@ metadata:
     {{- end}}
 spec:
   replicas: {{ .Values.replicaCount }}
-  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "starter-kit.name" . }}
@@ -33,6 +32,10 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "starter-kit.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: '9081'
+        prometheus.io/scrape: 'true'
     spec:
       {{- if .Values.image.secretName }}
       imagePullSecrets:
@@ -42,10 +45,12 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-
           ports:
             - name: http
               containerPort: {{ .Values.image.port }}
+              protocol: TCP
+            - name: metrics
+              containerPort: 9081
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -55,8 +60,6 @@ spec:
             httpGet:
               path: /
               port: http
-              initialDelaySeconds: 600
-              periodSeconds: 30
           env:
             - name: INGRESS_HOST
               value: ""
@@ -64,6 +67,10 @@ spec:
               value: ""
             - name: LOG_LEVEL
               value: {{ .Values.logLevel | quote }}
+            {{- range .Values.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}            
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
