@@ -75,6 +75,58 @@ spec:
     taskRef:
       kind: Task
       name: ibm-build-tag-push-v2-6-10
+  - name: deploy
+    params:
+    - name: git-url
+      value: $(tasks.setup.results.git-url)
+    - name: git-revision
+      value: $(tasks.setup.results.git-revision)
+    - name: source-dir
+      value: $(tasks.setup.results.source-dir)
+    - name: image-server
+      value: $(tasks.setup.results.image-server)
+    - name: image-namespace
+      value: $(tasks.setup.results.image-namespace)
+    - name: image-repository
+      value: $(tasks.setup.results.image-repository)
+    - name: image-tag
+      value: $(tasks.setup.results.image-tag)
+    - name: app-namespace
+      value: $(tasks.setup.results.app-namespace)
+    - name: app-name
+      value: $(tasks.setup.results.app-name)
+    - name: deploy-ingress-type
+      value: $(tasks.setup.results.deploy-ingress-type)
+    - name: tools-image
+      value: $(tasks.setup.results.tools-image)
+    runAfter:
+    - build
+    taskRef:
+      kind: Task
+      name: ibm-deploy-v2-6-10
+  - name: health
+    params:
+    - name: app-namespace
+      value: $(tasks.setup.results.app-namespace)
+    - name: app-name
+      value: $(tasks.setup.results.app-name)
+    - name: deploy-ingress-type
+      value: $(tasks.setup.results.deploy-ingress-type)
+    - name: health-protocol
+      value: $(tasks.setup.results.health-protocol)
+    - name: health-endpoint
+      value: $(tasks.setup.results.health-endpoint)
+    - name: health-url
+      value: $(tasks.setup.results.health-url)
+    - name: health-curl
+      value: $(tasks.setup.results.health-curl)
+    - name: tools-image
+      value: $(tasks.setup.results.tools-image)
+    runAfter:
+    - deploy
+    taskRef:
+      kind: Task
+      name: ibm-health-check-v2-6-10
   - name: tag-release
     params:
     - name: git-url
@@ -86,7 +138,7 @@ spec:
     - name: js-image
       value: $(tasks.setup.results.js-image)
     runAfter:
-    - build
+    - health
     taskRef:
       kind: Task
       name: ibm-tag-release-v2-6-10
