@@ -6,7 +6,7 @@ FROM ibmcom/websphere-traditional:latest-ubi
 COPY --chown=was:root ./src/config /work/config
 COPY --chown=was:root ./lib /work/config/lib
 
-ENV PORT 9080
-EXPOSE 9080
+#ENV PORT 9080
+#EXPOSE 9080
 
-RUN /work/configure.sh
+#RUN /work/configure.sh
