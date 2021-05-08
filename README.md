@@ -247,13 +247,14 @@ This repo uses the internal OpenShift registry to store your custom Base Java Co
     oc get imagestream -n base-image-github
 
     NAME                    IMAGE REPOSITORY                                                                           TAGS                          UPDATED
-    base-image-liberty      image-registry.openshift-image-registry.svc:5000/base-image-github/base-image-liberty      0.0.5,ee7b1a1,0.0.4,40f434b   50 minutes ago
-    ```
-
-1. In the above example output, `base-image-github/base-image-liberty` is the container image in the interanl OpenShift registry. `0.0.5` is the image tag of the latest image. So, the example container image locates at 
+    base-image-twas         image-registry.openshift-image-registry.svc:5000/base-image-github/base-image-twas         0.0.8,6d8e419,0.0.7,f5285f0,c6828f6 + 2 more...    11 minutes ago
 
     ```
-    export MY_BASE_IMAGE=$REGISTRY_HOST/base-image-github/base-image-liberty:0.0.5
+
+1. In the above example output, `base-image-github/base-image-twas` is the container image in the interanl OpenShift registry. `0.0.8` is the image tag of the latest image. So, the example container image locates at 
+
+    ```
+    export MY_BASE_IMAGE=$REGISTRY_HOST/base-image-github/base-image-twas:0.0.8
     echo $MY_BASE_IMAGE
 
     default-route-openshift-image-registry.leez-roks-aiops-6ccd7f378ae819553d37d5f2ee142bd6-0000.us-south.containers.appdomain.cloud/base-image-github/base-image-liberty:0.0.5
@@ -291,7 +292,7 @@ The steps below help verify your custom Base Java Container Image.
 1. Run your custom Base Java Container Image locally.
 
     ```
-    docker run --name my-liberty-container -d -p 9080:9080 $MY_BASE_IMAGE
+    docker run --name my-twas-container -d -p 9080:9080 $MY_BASE_IMAGE
 
     dd5d0f9e55f3f742abd6ca7ec6bbb6e7d375bcddb0d664b466aa539f97c7471d
     ```
@@ -305,7 +306,7 @@ The steps below help verify your custom Base Java Container Image.
     `my-liberty-container` should appear on the list.
         
     ```
-    docker container inspect my-liberty-container
+    docker container inspect my-twas-container
     ```
 
     Additional information is displayed for your running container `my-liberty-container`.
@@ -313,12 +314,12 @@ The steps below help verify your custom Base Java Container Image.
 1. Further verification of your container.
 
     ```
-    docker exec my-liberty-container whoami
+    docker exec my-twas-container whoami
 
-    default
+    was
     ```
 
-    The command output show that your container is running as the default user.
+    The command output show that your container is running as the `was` user.
 
 
 ### Step 10. Cleanup
@@ -326,13 +327,13 @@ The steps below help verify your custom Base Java Container Image.
 1. Stop and remove the container.
 
     ```
-    docker container rm my-liberty-container --force
+    docker container rm my-twas-container --force
     ```
 
 1. Verify that the container was removed.
 
     ```
-    docker container inspect my-liberty-container 
+    docker container inspect my-twas-container 
 
     Error: No such container: my-liberty-container
     ```
